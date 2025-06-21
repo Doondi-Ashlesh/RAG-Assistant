@@ -6,6 +6,7 @@ import faiss
 import pickle
 import numpy as np
 import os
+import uvicorn
 
 app = FastAPI()
 
@@ -21,6 +22,7 @@ app.add_middleware(
 HF_TOKEN = os.getenv("HF_TOKEN")
 
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+
 index = faiss.read_index("index.faiss")
 
 with open("chunks.pkl", "rb") as f:
@@ -46,16 +48,27 @@ Context:
 Question: {query}
 Answer:"""
 
-    return client.text_generation(
+    response = client.text_generation(
         prompt,
         max_new_tokens=500,
         temperature=0.3,
         do_sample=False
-    ).strip()
+    )
+    # client.text_generation returns a string
+    return response.strip()
 
 @app.get("/ask")
 async def ask(request: Request):
     q = request.query_params.get("q")
     if not q:
         return {"error": "Missing ?q= parameter"}
-    return {"answer": ask_question(q)}
+    answer = ask_question(q)
+    return {"answer": answer}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
