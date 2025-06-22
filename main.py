@@ -21,7 +21,8 @@ app.add_middleware(
 
 HF_TOKEN = os.getenv("HF_TOKEN")
 
-embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+#embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+embedding_model = SentenceTransformer("sentence-transformers/paraphrase-MiniLM-L3-v2")
 
 index = faiss.read_index("index.faiss")
 
